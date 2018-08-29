@@ -1,30 +1,47 @@
 package com.daerobotics.securemyphone
 
 import android.app.IntentService
+import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
+import android.graphics.SurfaceTexture
 import android.hardware.Camera
 import android.util.Log
-import android.content.Context
-import android.content.pm.PackageManager
-import android.os.Parcel
-import android.os.Parcelable
+import java.io.File
+import android.content.IntentFilter
+
+
 
 
 @Suppress("DEPRECATION")
-class MyService() : IntentService("MyIntentService") , Camera.PictureCallback {
+class MyService() : IntentService("MyIntentService"), Camera.PictureCallback {
     override fun onPictureTaken(p0: ByteArray?, p1: Camera?) {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
         Log.i(TAG, "Photo ok!")
 
+
+        var dstF : File = File(filesDir, "img1.jpg")
+        dstF.writeBytes(p0!!)
     }
 
     private val TAG = "ServiceExample"
 
     override fun onHandleIntent(arg0: Intent?) {
+
+        val filter = IntentFilter(CommandReceiver.ACTION_STOP)
+        filter.addCategory(Intent.CATEGORY_DEFAULT)
+        val receiver = CommandReceiver()
+        registerReceiver(receiver, filter)
+
+
+
+        if( arg0?.action == CommandReceiver.ACTION_STOP )
+        {
+            Log.i(TAG, "Intent STOP :)")
+        }
         Log.i(TAG, "Intent Service started")
         takeSelfie()
-
     }
+
 
 
     /** Check if this device has a camera */
@@ -38,19 +55,24 @@ class MyService() : IntentService("MyIntentService") , Camera.PictureCallback {
         }
     }
 
-    private fun takeSelfie(){
-
-        if(false === checkCameraHardware( this.applicationContext ))
-        {
+    private fun takeSelfie() {
+        Log.i(TAG, "takeSelfie()")
+        if (false == checkCameraHardware(this.applicationContext)) {
             Log.e(TAG, "No cameras in this device")
             return
         }
 
-        var cam = openCamera(Camera.CameraInfo.CAMERA_FACING_FRONT)
+        //var cam = openCamera(Camera.CameraInfo.CAMERA_FACING_FRONT)
+        var cam = openCamera(Camera.CameraInfo.CAMERA_FACING_BACK)
         cam?.lock()
-        cam?.takePicture(null,null,this)
+        var st : SurfaceTexture = SurfaceTexture(10)
+        cam?.setPreviewTexture( st )
+        cam?.startPreview()
+        cam?.takePicture(null, null, this)
 
         cam?.unlock()
+
+
 
     }
 

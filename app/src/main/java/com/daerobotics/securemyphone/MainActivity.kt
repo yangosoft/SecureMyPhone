@@ -1,13 +1,15 @@
 package com.daerobotics.securemyphone
 
+
 import android.Manifest
 import android.app.Activity
+import android.content.Intent
 import android.os.Bundle
 import android.view.View
-
 import kotlinx.android.synthetic.main.activity_main.*
 
-import android.content.Intent
+import android.support.v7.app.AppCompatActivity
+import android.support.v4.app.ActivityCompat
 
 class MainActivity : Activity() {
 
@@ -20,40 +22,37 @@ class MainActivity : Activity() {
 
         // Example of a call to a native method
         sample_text.text = stringFromJNI()
-
+        askPermissions()
         myIntent = Intent(this, MyService::class.java)
         val componentName = startService(myIntent)
-        if( componentName != null )
-        {
+        if (componentName != null) {
             sample_text.text = "Already running!"
         }
     }
 
-    public fun onBtnStop(v: View)
-    {
+    public fun onBtnStop(v: View) {
         sample_text.text = "Stopped"
+
+        var i: Intent = Intent()
+        i.action = CommandReceiver.ACTION_STOP
+        //sendBroadcast(i)
         stopService(myIntent)
+
     }
 
-    public fun onBtnStart(v: View)
-    {
+    public fun onBtnStart(v: View) {
         val componentName = startService(myIntent)
         sample_text.text = "Started"
-        if( componentName != null )
-        {
+        if (componentName != null) {
             sample_text.text = "Already running!"
         }
 
     }
 
 
-    private fun askPermissions()
-    {
-
-                // No explanation needed, we can request the permission.
-        //val requestPermissions: Any = ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.CAMERA), MY_PERMISSIONS_REQUEST_READ_CONTACTS)
-
-
+    private fun askPermissions() {
+        val lstPermissions = arrayOf(Manifest.permission.CAMERA, Manifest.permission.ACCESS_FINE_LOCATION)
+        ActivityCompat.requestPermissions(this, lstPermissions, 0)
     }
 
     /**
